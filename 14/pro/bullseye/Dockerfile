@@ -102,6 +102,11 @@ RUN set -ex; \
     rm -rf /var/lib/apt/lists/*; \
     postgres --version
 
+# make the sample config easier to munge (and "correct by default")
+RUN set -eux; \
+	sed -ri "s!^#?(listen_addresses)\s*=\s*\S+.*!\1 = '*'!" /opt/pgpro/std-14/share/postgresql.conf.sample; \
+	grep -F "listen_addresses = '*'" /opt/pgpro/std-14/share/postgresql.conf.sample
+
 RUN mkdir -p /var/run/postgresql && chown -R postgres:postgres /var/run/postgresql && chmod 2777 /var/run/postgresql
 
 ENV PGDATA /var/lib/postgresql/data
@@ -110,6 +115,7 @@ RUN mkdir -p "$PGDATA" && chown -R postgres:postgres "$PGDATA" && chmod 777 "$PG
 VOLUME /var/lib/postgresql/data
 
 COPY docker-entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 ENTRYPOINT ["docker-entrypoint.sh"]
 
 # We set the default STOPSIGNAL to SIGINT, which corresponds to what PostgreSQL
